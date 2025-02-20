@@ -14,7 +14,7 @@ type Shift = {
   endTime: string;
 };
 
-const API_URL = "http://localhost:5000"
+const API_URL = "https://jubilapi.pcdhebrail.ovh"
 
 function App() {
   const [shifts, setShifts] = useState<Shift[]>([]);
