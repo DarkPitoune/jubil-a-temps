@@ -9,6 +9,7 @@ import {
 import "./App.css";
 
 type Shift = {
+  id: number
   date: string;
   startTime: string;
   endTime: string;
@@ -48,7 +49,7 @@ function App() {
     e.preventDefault();
 
     if (!startTime || !endTime) {
-      alert("Please enter both start and end times");
+      alert("Les horaires ne sont pas corrects");
       return;
     }
 
@@ -86,6 +87,20 @@ function App() {
     const selectedDate = e.target.value;
     setDate(selectedDate);
   };
+
+  const handleDelete = (id: number) => {
+    const response = await fetch(`${API_URL}/api/shifts/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(shiftData)
+      });
+
+      if (response.ok) {
+        fetchShifts();
+      }
+  }
 
   const calculateTotals = () => {
     const now = new Date();
@@ -128,18 +143,18 @@ function App() {
 
       <div className="summary">
         <div className="summary-box">
-          <h3>Weekly Total</h3>
+          <h3>Total de la semaine</h3>
           <p>{formatTime(weeklyTotal)}</p>
         </div>
         <div className="summary-box">
-          <h3>Monthly Total</h3>
+          <h3>Total du mois</h3>
           <p>{formatTime(monthlyTotal)}</p>
         </div>
       </div>
 
       <div className="main-content">
         <div className="add-shift">
-          <h2>Add New Shift</h2>
+          <h2>Ajouter créneau</h2>
           <form onSubmit={handleAddShift}>
             <div className="form-group">
               <label>Date:</label>
@@ -151,7 +166,7 @@ function App() {
               />
             </div>
             <div className="form-group">
-              <label>Start Time:</label>
+              <label>Début:</label>
               <input
                 type="time"
                 value={startTime}
@@ -160,7 +175,7 @@ function App() {
               />
             </div>
             <div className="form-group">
-              <label>End Time:</label>
+              <label>Fin:</label>
               <input
                 type="time"
                 value={endTime}
@@ -169,13 +184,13 @@ function App() {
               />
             </div>
             <button type="submit" className="btn">
-              Add Shift
+              Ajouter créneau
             </button>
           </form>
         </div>
 
         <div className="daily-shifts">
-          <h2>Shifts for {date}</h2>
+          <h2>Créneaux du {date}</h2>
           {dailyShifts.length > 0 ? (
             <ul className="shifts-list">
               {dailyShifts.map((shift, index) => (
@@ -193,36 +208,38 @@ function App() {
       </div>
 
       <div className="history">
-        <h2>Shift History</h2>
+        <h2>Historique</h2>
         {shifts.length > 0 ? (
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Duration</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Durée</th>
+                <th>Supprimer</th>
               </tr>
             </thead>
             <tbody>
-              {shifts.map((shift, index) => {
+              {shifts.map((shift) => {
                 const start = new Date(`${shift.date}T${shift.startTime}`);
                 const end = new Date(`${shift.date}T${shift.endTime}`);
                 const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
                 return (
-                  <tr key={index}>
-                    <td>{format(new Date(shift.date), "MMM dd, yyyy")}</td>
+                  <tr key={shift.id}>
+                    <td>{format(new Date(shift.date), "dd MM, yyyy")}</td>
                     <td>{shift.startTime}</td>
                     <td>{shift.endTime}</td>
                     <td>{formatTime(hours)}</td>
+                    <td><button type="button" onClick={()=>handleDelete(shift.id)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         ) : (
-          <p>No shifts recorded yet.</p>
+          <p>Pas de créneau enregistré pour le moment</p>
         )}
       </div>
     </div>
