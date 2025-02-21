@@ -68,9 +68,25 @@ app.post("/api/shifts", (req, res) => {
   );
 });
 
+app.delete("/api/shifts/:id", (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM shifts WHERE id = ?", [id], function (err) {
+    if (err) {
+      res.status(500).json({ message: err.message });
+      return;
+    }
+    if (this.changes === 0) {
+      res.status(404).json({ message: "Shift not found" });
+      return;
+    }
+    res.json({ message: "Shift deleted successfully" });
+  });
+});
+
+
 // Serve static assets in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static("client/dist"));
+  app.use(express.static("dist"));
 
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "dist", "index.html"));
