@@ -200,7 +200,7 @@ function App() {
               ))}
             </ul>
           ) : (
-            <p>No shifts recorded for this date.</p>
+            <p>Aucun créneau sur la date sélectionnée.</p>
           )}
         </div>
       </div>
