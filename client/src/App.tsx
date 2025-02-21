@@ -91,10 +91,6 @@ function App() {
   const handleDelete = async (id: number) => {
     const response = await fetch(`${API_URL}/api/shifts/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(shiftData)
       });
 
       if (response.ok) {
