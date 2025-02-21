@@ -88,7 +88,7 @@ function App() {
     setDate(selectedDate);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     const response = await fetch(`${API_URL}/api/shifts/${id}`, {
         method: "DELETE",
         headers: {
