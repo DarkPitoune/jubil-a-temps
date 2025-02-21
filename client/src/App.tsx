@@ -89,7 +89,7 @@ function App() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Supprimer le créneau ?") {
+    if (window.confirm("Supprimer le créneau ?")) {
       const response = await fetch(`${API_URL}/api/shifts/${id}`, {
           method: "DELETE",
         });
