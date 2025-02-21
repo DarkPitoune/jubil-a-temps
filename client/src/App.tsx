@@ -232,7 +232,7 @@ function App() {
                     <td>{shift.startTime}</td>
                     <td>{shift.endTime}</td>
                     <td>{formatTime(hours)}</td>
-                    <td><button type="button" onClick={()=>handleDelete(shift.id)}</td>
+                    <td><button type="button" onClick={()=>handleDelete(shift.id)}>❌</button></td>
                   </tr>
                 );
               })}
