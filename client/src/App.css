@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: min(1000px, 100vw);
   margin: 0 auto;
   padding: 20px;
 }
@@ -159,5 +159,20 @@ tr:hover {
 
   .summary {
     flex-direction: column;
+  }
+
+  /* Add these new styles for responsive table */
+  .history {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  th,
+  td {
+    padding: 8px 10px;
   }
 }
