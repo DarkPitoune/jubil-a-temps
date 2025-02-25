@@ -3,6 +3,8 @@ const sqlite3 = require("sqlite3").verbose();
 const bodyParser = require("body-parser");
 const path = require("path");
 const cors = require("cors");
+const cron = require('node-cron');
+const { sendWeeklyDigest, sendMonthlyDigest } = require('./services/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -115,6 +117,18 @@ app.delete("/api/shifts/:id", (req, res) => {
   });
 });
 
+const recipientEmail = process.env.RECIPIENT_EMAIL;
+// Schedule weekly digest - Every Monday at 9am
+cron.schedule('0 9 * * 1', () => {
+  sendWeeklyDigest(db, [recipientEmail])
+    .catch(console.error);
+});
+
+// Schedule monthly digest - First day of each month at 9am
+cron.schedule('0 9 1 * *', () => {
+  sendMonthlyDigest(db, [recipientEmail])
+    .catch(console.error);
+});
 
 // Serve static assets in production
 if (process.env.NODE_ENV === "production") {
