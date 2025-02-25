@@ -222,6 +222,56 @@ input[type="text"] {
   border-top: 1px solid #eee;
 }
 
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.edit-btn:hover {
+  background: #e8f4fd;
+}
+
+.edit-btn.save:hover {
+  background: #e3ffe3;
+  color: #2d862d;
+}
+
+.edit-btn.cancel {
+  color: #cc0000;
+}
+
+.edit-btn.cancel:hover {
+  background: #fee;
+}
+
+.shift-card input {
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+
+.shift-card input[type="time"] {
+  width: 100px;
+}
+
+.shift-comment-input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+}
+
 @media (max-width: 768px) {
   .main-content {
     grid-template-columns: 1fr;

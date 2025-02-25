@@ -27,6 +27,8 @@ function App() {
   const [dailyShifts, setDailyShifts] = useState<Shift[]>([]);
   const [weeklyTotal, setWeeklyTotal] = useState(0);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
 
   useEffect(() => {
     fetchShifts();
@@ -79,6 +81,31 @@ function App() {
       }
     } catch (error) {
       console.error("Error adding shift:", error);
+    }
+  };
+
+  const startEditing = (shift: Shift) => {
+    setEditingId(shift.id);
+    setEditingShift({...shift});
+  };
+
+  const handleEdit = async (id: number, editedShift: Partial<Shift>) => {
+    try {
+      const response = await fetch(`${API_URL}/api/shifts/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(editedShift)
+      });
+
+      if (response.ok) {
+        setEditingId(null);
+        setEditingShift(null);
+        fetchShifts();
+      }
+    } catch (error) {
+      console.error("Error updating shift:", error);
     }
   };
 
@@ -227,21 +254,75 @@ function App() {
               const start = new Date(`${shift.date}T${shift.startTime}`);
               const end = new Date(`${shift.date}T${shift.endTime}`);
               const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+              const isEditing = editingId === shift.id;
 
               return (
                 <div key={shift.id} className="shift-card">
                   <div className="shift-card-header">
-                    <span className="shift-date">{format(new Date(shift.date), "dd MMM yyyy")}</span>
-                    <button type="button" onClick={() => handleDelete(shift.id)} className="delete-btn">❌</button>
+                    <span className="shift-date">
+                      {isEditing ? (
+                        <input
+                          type="date"
+                          defaultValue={shift.date}
+                          onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, date: e.target.value })}
+                          onChange={(e) => setEditingShift(prev => prev ? {...prev, date: e.target.value} : prev)}
+                        />
+                      ) : (
+                        format(new Date(shift.date), "dd MMM yyyy")
+                      )}
+                    </span>
+                    <div className="card-actions">
+                      {!isEditing && (
+                        <button 
+                          type="button" 
+                          onClick={() => startEditing(shift)}
+                          className="edit-btn"
+                        >
+                          ✏️
+                        </button>
+                      )}
+                      <button type="button" onClick={() => handleDelete(shift.id)} className="delete-btn">❌</button>
+                    </div>
                   </div>
                   <div className="shift-card-body">
                     <div className="shift-time">
-                      <span>{shift.startTime}</span>
-                      <span className="separator">→</span>
-                      <span>{shift.endTime}</span>
+                      {isEditing ? (
+                        <>
+                          <input
+                            type="time"
+                            defaultValue={shift.startTime}
+                            onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, startTime: e.target.value })}
+                            onChange={(e) => setEditingShift(prev => prev ? {...prev, startTime: e.target.value} : prev)}
+                          />
+                          <span className="separator">→</span>
+                          <input
+                            type="time"
+                            defaultValue={shift.endTime}
+                            onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, endTime: e.target.value })}
+                            onChange={(e) => setEditingShift(prev => prev ? {...prev, endTime: e.target.value} : prev)}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <span>{shift.startTime}</span>
+                          <span className="separator">→</span>
+                          <span>{shift.endTime}</span>
+                        </>
+                      )}
                     </div>
                     <div className="shift-duration">{formatTime(hours)}</div>
-                    <div className="shift-card-comment">coucou le commentaire {shift.comment}</div>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        defaultValue={shift.comment || ''}
+                        onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, comment: e.target.value })}
+                        onChange={(e) => setEditingShift(prev => prev ? {...prev, comment: e.target.value} : prev)}
+                        className="shift-comment-input"
+                        placeholder="Commentaire"
+                      />
+                    ) : (
+                      shift.comment && <div className="shift-card-comment">{shift.comment}</div>
+                    )}
                   </div>
                 </div>
               );
