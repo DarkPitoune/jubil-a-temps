@@ -69,6 +69,37 @@ app.post("/api/shifts", (req, res) => {
   );
 });
 
+app.put("/api/shifts/:id", (req, res) => {
+  const { id } = req.params;
+  const { date, startTime, endTime, comment } = req.body;
+
+  // Validate times
+  if (startTime >= endTime) {
+    return res.status(400).json({ message: "End time must be after start time" });
+  }
+
+  db.run(
+    "UPDATE shifts SET date = ?, startTime = ?, endTime = ?, comment = ? WHERE id = ?",
+    [date, startTime, endTime, comment, id],
+    function (err) {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ message: "Shift not found" });
+      }
+      res.status(200).json({
+        id,
+        date,
+        startTime,
+        endTime,
+        comment
+      });
+    }
+  );
+});
+
+
 app.delete("/api/shifts/:id", (req, res) => {
   const { id } = req.params;
   db.run("DELETE FROM shifts WHERE id = ?", [id], function (err) {
