@@ -222,36 +222,31 @@ function App() {
       <div className="history">
         <h2>Historique</h2>
         {shifts.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Début</th>
-                <th>Fin</th>
-                <th>Durée</th>
-                <th>Commentaire</th>
-                <th>Supprimer</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shifts.map((shift) => {
-                const start = new Date(`${shift.date}T${shift.startTime}`);
-                const end = new Date(`${shift.date}T${shift.endTime}`);
-                const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+          <div className="shifts-history">
+            {shifts.map((shift) => {
+              const start = new Date(`${shift.date}T${shift.startTime}`);
+              const end = new Date(`${shift.date}T${shift.endTime}`);
+              const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
-                return (
-                  <tr key={shift.id}>
-                    <td>{format(new Date(shift.date), "dd MM, yyyy")}</td>
-                    <td>{shift.startTime}</td>
-                    <td>{shift.endTime}</td>
-                    <td>{formatTime(hours)}</td>
-                    <td>{shift.comment || '-'}</td>
-                    <td><button type="button" onClick={()=>handleDelete(shift.id)}>❌</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              return (
+                <div key={shift.id} className="shift-card">
+                  <div className="shift-card-header">
+                    <span className="shift-date">{format(new Date(shift.date), "dd MMM yyyy")}</span>
+                    <button type="button" onClick={() => handleDelete(shift.id)} className="delete-btn">❌</button>
+                  </div>
+                  <div className="shift-card-body">
+                    <div className="shift-time">
+                      <span>{shift.startTime}</span>
+                      <span className="separator">→</span>
+                      <span>{shift.endTime}</span>
+                    </div>
+                    <div className="shift-duration">{formatTime(hours)}</div>
+                    <div className="shift-card-comment">coucou le commentaire {shift.comment}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <p>Pas de créneau enregistré pour le moment</p>
         )}
