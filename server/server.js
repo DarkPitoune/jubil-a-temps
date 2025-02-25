@@ -27,6 +27,7 @@ db.run(`
     date TEXT NOT NULL,
     startTime TEXT NOT NULL,
     endTime TEXT NOT NULL,
+    comment TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -43,7 +44,7 @@ app.get("/api/shifts", (req, res) => {
 });
 
 app.post("/api/shifts", (req, res) => {
-  const { date, startTime, endTime } = req.body;
+  const { date, startTime, endTime, comment } = req.body;
 
   // Validate times
   if (startTime >= endTime) {
@@ -51,8 +52,8 @@ app.post("/api/shifts", (req, res) => {
   }
 
   db.run(
-    "INSERT INTO shifts (date, startTime, endTime) VALUES (?, ?, ?)",
-    [date, startTime, endTime],
+    "INSERT INTO shifts (date, startTime, endTime, comment) VALUES (?, ?, ?, ?)",
+    [date, startTime, endTime, comment],
     function(err) {
       if (err) {
         res.status(400).json({ message: err.message });
