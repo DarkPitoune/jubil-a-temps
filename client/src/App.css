@@ -79,6 +79,15 @@ h2 {
   margin-bottom: 15px;
 }
 
+@media screen and (max-width: 768px) {
+  .form-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 label {
   display: block;
   margin-bottom: 5px;
@@ -86,7 +95,8 @@ label {
 }
 
 input[type="date"],
-input[type="time"] {
+input[type="time"],
+input[type="text"] {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -121,6 +131,12 @@ input[type="time"] {
 
 .shifts-list li:last-child {
   border-bottom: none;
+}
+
+.shift-comment {
+  color: #666;
+  font-size: 0.9em;
+  margin-left: 8px;
 }
 
 .history {

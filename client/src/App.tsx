@@ -13,6 +13,7 @@ type Shift = {
   date: string;
   startTime: string;
   endTime: string;
+  comment?: string;
 };
 
 const API_URL = "https://jubilapi.pcdhebrail.ovh"
@@ -21,6 +22,7 @@ function App() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [comment, setComment] = useState("");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [dailyShifts, setDailyShifts] = useState<Shift[]>([]);
   const [weeklyTotal, setWeeklyTotal] = useState(0);
@@ -56,7 +58,8 @@ function App() {
     const shiftData = {
       date,
       startTime,
-      endTime
+      endTime,
+      comment
     };
 
     try {
@@ -71,6 +74,7 @@ function App() {
       if (response.ok) {
         setStartTime("");
         setEndTime("");
+        setComment("");
         fetchShifts();
       }
     } catch (error) {
@@ -181,6 +185,15 @@ function App() {
                 required
               />
             </div>
+            <div className="form-group">
+              <label>Commentaire:</label>
+              <input
+                type="text"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Optionnel"
+              />
+            </div>
             <button type="submit" className="btn">
               Ajouter créneau
             </button>
@@ -196,6 +209,7 @@ function App() {
                   <span>
                     {shift.startTime} - {shift.endTime}
                   </span>
+                  <span className="shift-comment"> {shift.comment || "-"}</span>
                 </li>
               ))}
             </ul>
@@ -215,6 +229,7 @@ function App() {
                 <th>Début</th>
                 <th>Fin</th>
                 <th>Durée</th>
+                <th>Commentaire</th>
                 <th>Supprimer</th>
               </tr>
             </thead>
@@ -230,6 +245,7 @@ function App() {
                     <td>{shift.startTime}</td>
                     <td>{shift.endTime}</td>
                     <td>{formatTime(hours)}</td>
+                    <td>{shift.comment || '-'}</td>
                     <td><button type="button" onClick={()=>handleDelete(shift.id)}>❌</button></td>
                   </tr>
                 );
