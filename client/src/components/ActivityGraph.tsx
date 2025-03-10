@@ -1,6 +1,6 @@
 import React from 'react';
 import './ActivityGraph.css';
-import { eachDayOfInterval, subDays, format } from 'date-fns';
+import { eachDayOfInterval, format } from 'date-fns';
 
 interface ActivityGraphProps {
   data: { [key: string]: number };
@@ -8,15 +8,23 @@ interface ActivityGraphProps {
 
 export const ActivityGraph: React.FC<ActivityGraphProps> = ({ data }) => {
   const today = new Date();
-  const startDate = subDays(today, 364);
+  const dates = Object.keys(data);
+  const startDate = dates.length > 0 
+    ? new Date(dates.sort()[0])
+    : today;
   const days = eachDayOfInterval({ start: startDate, end: today });
 
   const getIntensity = (hours: number): string => {
     if (!hours) return 'level-0';
-    if (hours <= 7) return 'level-1';
-    if (hours <= 8) return 'level-2';
-    if (hours <= 9) return 'level-3';
-    return 'level-4';
+    if (hours <= 6) return 'level-1';
+    if (hours <= 6.5) return 'level-2';
+    if (hours <= 7) return 'level-3';
+    if (hours <= 7.5) return 'level-4';
+    if (hours <= 8) return 'level-5';
+    if (hours <= 8.5) return 'level-6';
+    if (hours <= 9) return 'level-7';
+    if (hours <= 9.5) return 'level-8';
+    return 'level-9';
   };
 
   const weeks = days.reduce<Date[][]>((acc, day) => {

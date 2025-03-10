@@ -33,10 +33,15 @@
 }
 
 .level-0 { background-color: #ebedf0; }
-.level-1 { background-color: #9be9a8; }
-.level-2 { background-color: #40c463; }
-.level-3 { background-color: #30a14e; }
-.level-4 { background-color: #216e39; }
+.level-1 { background-color: #d0e8a7; }
+.level-2 { background-color: #9ee086; }
+.level-3 { background-color: #7bc96f; }
+.level-4 { background-color: #5bb35d; }
+.level-5 { background-color: #45a04c; }
+.level-6 { background-color: #328a3d; }
+.level-7 { background-color: #25732f; }
+.level-8 { background-color: #1a5c24; }
+.level-9 { background-color: #0f4618; }
 
 .week-column {
   display: flex;
