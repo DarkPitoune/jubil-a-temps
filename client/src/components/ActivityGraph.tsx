@@ -13,9 +13,9 @@ export const ActivityGraph: React.FC<ActivityGraphProps> = ({ data }) => {
 
   const getIntensity = (hours: number): string => {
     if (!hours) return 'level-0';
-    if (hours <= 2) return 'level-1';
-    if (hours <= 4) return 'level-2';
-    if (hours <= 6) return 'level-3';
+    if (hours <= 6) return 'level-1';
+    if (hours <= 7) return 'level-2';
+    if (hours <= 8) return 'level-3';
     return 'level-4';
   };
 
