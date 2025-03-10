@@ -36,20 +36,25 @@ db.run(`
 
 // API Routes
 app.get("/api/shifts", (req, res) => {
+  console.log(`[${new Date().toISOString()}] GET /api/shifts - Fetching all shifts`);
   db.all("SELECT * FROM shifts ORDER BY date DESC, startTime ASC", [], (err, shifts) => {
     if (err) {
+      console.error(`[${new Date().toISOString()}] GET /api/shifts - Error:`, err.message);
       res.status(500).json({ message: err.message });
       return;
     }
+    console.log(`[${new Date().toISOString()}] GET /api/shifts - Success: Retrieved ${shifts.length} shifts`);
     res.json(shifts);
   });
 });
 
 app.post("/api/shifts", (req, res) => {
   const { date, startTime, endTime, comment } = req.body;
+  console.log(`[${new Date().toISOString()}] POST /api/shifts - Creating new shift for date: ${date}`);
 
   // Validate times
   if (startTime >= endTime) {
+    console.warn(`[${new Date().toISOString()}] POST /api/shifts - Validation Error: Invalid time range`);
     return res.status(400).json({ message: "End time must be after start time" });
   }
 
@@ -58,9 +63,11 @@ app.post("/api/shifts", (req, res) => {
     [date, startTime, endTime, comment],
     function(err) {
       if (err) {
+        console.error(`[${new Date().toISOString()}] POST /api/shifts - Error:`, err.message);
         res.status(400).json({ message: err.message });
         return;
       }
+      console.log(`[${new Date().toISOString()}] POST /api/shifts - Success: Created shift with ID ${this.lastID}`);
       res.status(201).json({
         id: this.lastID,
         date,
@@ -74,9 +81,11 @@ app.post("/api/shifts", (req, res) => {
 app.put("/api/shifts/:id", (req, res) => {
   const { id } = req.params;
   const { date, startTime, endTime, comment } = req.body;
+  console.log(`[${new Date().toISOString()}] PUT /api/shifts/${id} - Updating shift`);
 
   // Validate times
   if (startTime >= endTime) {
+    console.warn(`[${new Date().toISOString()}] PUT /api/shifts/${id} - Validation Error: Invalid time range`);
     return res.status(400).json({ message: "End time must be after start time" });
   }
 
@@ -85,11 +94,14 @@ app.put("/api/shifts/:id", (req, res) => {
     [date, startTime, endTime, comment, id],
     function (err) {
       if (err) {
+        console.error(`[${new Date().toISOString()}] PUT /api/shifts/${id} - Error:`, err.message);
         return res.status(400).json({ message: err.message });
       }
       if (this.changes === 0) {
+        console.warn(`[${new Date().toISOString()}] PUT /api/shifts/${id} - Not Found`);
         return res.status(404).json({ message: "Shift not found" });
       }
+      console.log(`[${new Date().toISOString()}] PUT /api/shifts/${id} - Success: Updated shift`);
       res.status(200).json({
         id,
         date,
@@ -101,18 +113,22 @@ app.put("/api/shifts/:id", (req, res) => {
   );
 });
 
-
 app.delete("/api/shifts/:id", (req, res) => {
   const { id } = req.params;
+  console.log(`[${new Date().toISOString()}] DELETE /api/shifts/${id} - Deleting shift`);
+  
   db.run("DELETE FROM shifts WHERE id = ?", [id], function (err) {
     if (err) {
+      console.error(`[${new Date().toISOString()}] DELETE /api/shifts/${id} - Error:`, err.message);
       res.status(500).json({ message: err.message });
       return;
     }
     if (this.changes === 0) {
+      console.warn(`[${new Date().toISOString()}] DELETE /api/shifts/${id} - Not Found`);
       res.status(404).json({ message: "Shift not found" });
       return;
     }
+    console.log(`[${new Date().toISOString()}] DELETE /api/shifts/${id} - Success: Deleted shift`);
     res.json({ message: "Shift deleted successfully" });
   });
 });

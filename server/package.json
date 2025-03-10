@@ -6,11 +6,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "start": "node --env-file=.env  server.js"
+  },
   "dependencies": {
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "express": "^4.21.2",
+    "node-cron": "^3.0.3",
     "path": "^0.12.7",
+    "resend": "^4.1.2",
     "sqlite3": "^5.1.7"
   },
   "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"

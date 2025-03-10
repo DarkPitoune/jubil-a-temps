@@ -7,6 +7,7 @@ import {
   endOfMonth
 } from "date-fns";
 import "./App.css";
+import { ActivityGraph } from './components/ActivityGraph';
 
 type Shift = {
   id: number
@@ -160,6 +161,24 @@ function App() {
     setMonthlyTotal(parseFloat(monthHours.toFixed(2)));
   };
 
+  const groupShiftDurationByDay = () => {
+    const durationByDay: { [key: string]: number } = {};
+    
+    shifts.forEach((shift) => {
+      const start = new Date(`${shift.date}T${shift.startTime}`);
+      const end = new Date(`${shift.date}T${shift.endTime}`);
+      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      
+      if (durationByDay[shift.date]) {
+        durationByDay[shift.date] += hours;
+      } else {
+        durationByDay[shift.date] = hours;
+      }
+    });
+    
+    return durationByDay;
+  };
+
   const formatTime = (hours: number) => {
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
@@ -180,6 +199,8 @@ function App() {
           <p>{formatTime(monthlyTotal)}</p>
         </div>
       </div>
+
+      <ActivityGraph data={groupShiftDurationByDay()} />
 
       <div className="main-content">
         <div className="add-shift">

@@ -1,8 +1,10 @@
-const sgMail = require('@sendgrid/mail');
 const { format } = require('date-fns');
+const { Resend } = require('resend');
 const { fr } = require('date-fns/locale');
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const RESEND_API_KEY = process.env.RESEND_API_KEY
+
+const resend = new Resend(RESEND_API_KEY)
 
 const formatTime = (hours) => {
   const wholeHours = Math.floor(hours);
@@ -31,7 +33,8 @@ const generateWeeklyDigest = async (shifts) => {
   return {
     totalHours: formatTime(totalHours),
     html: `
-      <h2>Récapitulatif hebdomadaire</h2>
+      <h2>Récapitulatif hebdomadaire de Jubil-à-Temps</h2>
+      <p>Voici le total horaire pour la semaine dernière</p>
       <p>Total: ${formatTime(totalHours)}</p>
       <table border="1" cellpadding="5" style="border-collapse: collapse;">
         <tr>
@@ -77,7 +80,7 @@ const sendWeeklyDigest = async (db, recipients) => {
     html: digest.html,
   };
 
-  await sgMail.send(msg);
+  await resend.emails.send(msg);
 };
 
 // Similar implementation for monthly digest
@@ -102,7 +105,8 @@ const generateMonthlyDigest = async (shifts) => {
   return {
     totalHours: formatTime(totalHours),
     html: `
-      <h2>Récapitulatif mensuel</h2>
+      <h2>Récapitulatif mensuel de Jubil-à-Temps</h2>
+      <p>Voici le total horaire pour le mois dernier</p>
       <p>Total: ${formatTime(totalHours)}</p>
       <table border="1" cellpadding="5" style="border-collapse: collapse;">
         <tr>
@@ -135,15 +139,19 @@ const sendMonthlyDigest = async (db, recipients) => {
   if (shifts.length === 0) return;
 
   const digest = await generateMonthlyDigest(shifts);
+  const senderEmail = process.env.SENDER_EMAIL;
+  if (!senderEmail) {
+    throw new Error('SENDER_EMAIL environment variable is required');
+  }
   
   const msg = {
     to: recipients,
-    from: 'your-verified-sender@yourdomain.com',
+    from: senderEmail,
     subject: `Récapitulatif mensuel - ${digest.totalHours}`,
     html: digest.html,
   };
 
-  await sgMail.send(msg);
+  await resend.emails.send(msg);
 };
 
 module.exports = {
