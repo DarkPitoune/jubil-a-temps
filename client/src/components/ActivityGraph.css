@@ -1,0 +1,41 @@
+.activity-graph {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  margin: 20px 0;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.graph-container {
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  gap: 3px;
+  padding: 10px;
+}
+
+.day-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: #ebedf0;
+}
+
+.level-0 { background-color: #ebedf0; }
+.level-1 { background-color: #9be9a8; }
+.level-2 { background-color: #40c463; }
+.level-3 { background-color: #30a14e; }
+.level-4 { background-color: #216e39; }
