@@ -19,7 +19,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-const API_URL = "https://jubilapi.pcdhebrail.ovh";
+const API_URL = "https://jubilapi.pcdhebrail.ovh/api";
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
