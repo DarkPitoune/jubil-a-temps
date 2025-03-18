@@ -12,7 +12,7 @@ const formatTime = (hours) => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-const generateWeeklyDigest = async (shifts) => {
+const generateWeeklyDigest = async (shifts, userName) => {
   let totalHours = 0;
   const shiftsList = shifts.map(shift => {
     const start = new Date(`${shift.date}T${shift.startTime}`);
@@ -34,6 +34,7 @@ const generateWeeklyDigest = async (shifts) => {
     totalHours: formatTime(totalHours),
     html: `
       <h2>Récapitulatif hebdomadaire de Jubil-à-Temps</h2>
+      <p>Bonjour ${userName},</p>
       <p>Voici le total horaire pour la semaine dernière</p>
       <p>Total: ${formatTime(totalHours)}</p>
       <table border="1" cellpadding="5" style="border-collapse: collapse;">
@@ -49,42 +50,63 @@ const generateWeeklyDigest = async (shifts) => {
   };
 };
 
-const sendWeeklyDigest = async (db, recipients) => {
+const sendWeeklyDigest = async (db) => {
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 7);
+  const lastWeekFormatted = format(lastWeek, 'yyyy-MM-dd');
   
-  const shifts = await new Promise((resolve, reject) => {
-    db.all(
-      "SELECT * FROM shifts WHERE date >= ? ORDER BY date ASC",
-      [format(lastWeek, 'yyyy-MM-dd')],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
+  // Get all active users
+  const users = await new Promise((resolve, reject) => {
+    db.all("SELECT id, name, email FROM users", [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
   });
 
-  if (shifts.length === 0) return;
+  const senderEmail = process.env.SENDER_EMAIL
 
-  const digest = await generateWeeklyDigest(shifts);
-
-  const senderEmail = process.env.SENDER_EMAIL;
   if (!senderEmail) {
-    throw new Error('SENDER_EMAIL environment variable is required');
+    console.error('SENDER_EMAIL is not set in environment variables');
+    return;
   }
   
-  const msg = {
-    to: recipients,
-    from: senderEmail,
-    subject: `Récapitulatif hebdomadaire - ${digest.totalHours}`,
-    html: digest.html,
-  };
-
-  await resend.emails.send(msg);
+  // For each user, send their personalized digest
+  for (const user of users) {
+    // Get shifts for this specific user
+    const shifts = await new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM shifts WHERE userId = ? AND date >= ? ORDER BY date ASC",
+        [user.id, lastWeekFormatted],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+    
+    // Skip if no shifts for this user
+    if (shifts.length === 0) continue;
+    
+    try {
+      const digest = await generateWeeklyDigest(shifts, user.name);
+      
+      const msg = {
+        to: user.email,
+        from: senderEmail,
+        subject: `Récapitulatif hebdomadaire - ${digest.totalHours}`,
+        html: digest.html,
+      };
+      
+      await resend.emails.send(msg);
+      console.log(`Weekly digest sent to ${user.email}`);
+    } catch (error) {
+      console.error(`Error sending weekly digest to ${user.email}:`, error);
+    }
+  }
 };
 
 // Similar implementation for monthly digest
-const generateMonthlyDigest = async (shifts) => {
+const generateMonthlyDigest = async (shifts, userName) => {
   let totalHours = 0;
   const shiftsList = shifts.map(shift => {
     const start = new Date(`${shift.date}T${shift.startTime}`);
@@ -106,6 +128,7 @@ const generateMonthlyDigest = async (shifts) => {
     totalHours: formatTime(totalHours),
     html: `
       <h2>Récapitulatif mensuel de Jubil-à-Temps</h2>
+      <p>Bonjour ${userName},</p>
       <p>Voici le total horaire pour le mois dernier</p>
       <p>Total: ${formatTime(totalHours)}</p>
       <table border="1" cellpadding="5" style="border-collapse: collapse;">
@@ -121,37 +144,54 @@ const generateMonthlyDigest = async (shifts) => {
   };
 };
 
-const sendMonthlyDigest = async (db, recipients) => {
+const sendMonthlyDigest = async (db) => {
   const lastMonth = new Date();
   lastMonth.setMonth(lastMonth.getMonth() - 1);
+  const lastMonthFormatted = format(lastMonth, 'yyyy-MM-dd');
   
-  const shifts = await new Promise((resolve, reject) => {
-    db.all(
-      "SELECT * FROM shifts WHERE date >= ? ORDER BY date ASC",
-      [format(lastMonth, 'yyyy-MM-dd')],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
+  // Get all active users
+  const users = await new Promise((resolve, reject) => {
+    db.all("SELECT id, name, email FROM users", [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
   });
 
-  if (shifts.length === 0) return;
-
-  const digest = await generateMonthlyDigest(shifts);
-  const senderEmail = process.env.SENDER_EMAIL;
-  if (!senderEmail) {
-    throw new Error('SENDER_EMAIL environment variable is required');
-  }
+  const senderEmail = process.env.SENDER_EMAIL || 'noreply@jubilatemps.com';
   
-  const msg = {
-    to: recipients,
-    from: senderEmail,
-    subject: `Récapitulatif mensuel - ${digest.totalHours}`,
-    html: digest.html,
-  };
-
-  await resend.emails.send(msg);
+  // For each user, send their personalized digest
+  for (const user of users) {
+    // Get shifts for this specific user
+    const shifts = await new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM shifts WHERE userId = ? AND date >= ? ORDER BY date ASC",
+        [user.id, lastMonthFormatted],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+    
+    // Skip if no shifts for this user
+    if (shifts.length === 0) continue;
+    
+    try {
+      const digest = await generateMonthlyDigest(shifts, user.name);
+      
+      const msg = {
+        to: user.email,
+        from: senderEmail,
+        subject: `Récapitulatif mensuel - ${digest.totalHours}`,
+        html: digest.html,
+      };
+      
+      await resend.emails.send(msg);
+      console.log(`Monthly digest sent to ${user.email}`);
+    } catch (error) {
+      console.error(`Error sending monthly digest to ${user.email}:`, error);
+    }
+  }
 };
 
 module.exports = {
