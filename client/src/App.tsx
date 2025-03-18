@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import {
   format,
   startOfWeek,
@@ -8,6 +9,9 @@ import {
 } from "date-fns";
 import "./App.css";
 import { ActivityGraph } from './components/ActivityGraph';
+import Auth from './components/Auth';
+import ProtectedRoute from './components/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 
 type Shift = {
   id: number
@@ -17,9 +21,10 @@ type Shift = {
   comment?: string;
 };
 
-const API_URL = "https://jubilapi.pcdhebrail.ovh"
+const API_URL = "https://jubilapi.pcdhebrail.ovh";
 
-function App() {
+function HomePage() {
+  const { user, token } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -30,50 +35,63 @@ function App() {
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
-
+  
   useEffect(() => {
     fetchShifts();
-  }, []);
-
+  }, [token]); // Refetch when token changes
+  
   useEffect(() => {
     calculateTotals();
     setDateShifts(date);
   }, [shifts, date]);
-
+  
   const fetchShifts = async () => {
+    if (!token) return;
+    
     try {
-      const response = await fetch(`${API_URL}/api/shifts`);
-      const data = await response.json();
-      setShifts(data);
+      const response = await fetch(`${API_URL}/api/shifts`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setShifts(data);
+      } else if (response.status === 401) {
+        // Handle unauthorized error
+        console.error("Authentication required");
+      }
     } catch (error) {
       console.error("Error fetching shifts:", error);
     }
   };
-
+  
   const handleAddShift = async (e) => {
     e.preventDefault();
-
     if (!startTime || !endTime) {
       alert("Les horaires ne sont pas corrects");
       return;
     }
-
+    
     const shiftData = {
       date,
       startTime,
       endTime,
-      comment
+      comment,
+      userId: user?.id
     };
-
+    
     try {
       const response = await fetch(`${API_URL}/api/shifts`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(shiftData)
       });
-
+      
       if (response.ok) {
         setStartTime("");
         setEndTime("");
@@ -84,22 +102,23 @@ function App() {
       console.error("Error adding shift:", error);
     }
   };
-
+  
   const startEditing = (shift: Shift) => {
     setEditingId(shift.id);
     setEditingShift({...shift});
   };
-
+  
   const handleEdit = async (id: number, editedShift: Partial<Shift>) => {
     try {
       const response = await fetch(`${API_URL}/api/shifts/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(editedShift)
       });
-
+      
       if (response.ok) {
         setEditingId(null);
         setEditingShift(null);
@@ -109,58 +128,60 @@ function App() {
       console.error("Error updating shift:", error);
     }
   };
-
+  
   const setDateShifts = (selectedDate: string) => {
     const filteredShifts = shifts.filter((shift) => shift.date === selectedDate);
     setDailyShifts(filteredShifts);
   };
-
+  
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
   };
-
+  
   const handleDelete = async (id: number) => {
     if (window.confirm("Supprimer le créneau ?")) {
       const response = await fetch(`${API_URL}/api/shifts/${id}`, {
-          method: "DELETE",
-        });
-  
-        if (response.ok) {
-          fetchShifts();
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      });
+
+      if (response.ok) {
+        fetchShifts();
+      }
     }
   }
-
+  
   const calculateTotals = () => {
     const now = new Date();
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
     const monthStart = startOfMonth(now);
     const monthEnd = endOfMonth(now);
-
     let weekHours = 0;
     let monthHours = 0;
-
+    
     shifts.forEach((shift) => {
       const shiftDate = new Date(shift.date);
       const start = new Date(`${shift.date}T${shift.startTime}`);
       const end = new Date(`${shift.date}T${shift.endTime}`);
       const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-
+      
       if (shiftDate >= weekStart && shiftDate <= weekEnd) {
         weekHours += hours;
       }
-
+      
       if (shiftDate >= monthStart && shiftDate <= monthEnd) {
         monthHours += hours;
       }
     });
-
+    
     setWeeklyTotal(parseFloat(weekHours.toFixed(2)));
     setMonthlyTotal(parseFloat(monthHours.toFixed(2)));
   };
-
+  
   const groupShiftDurationByDay = () => {
     const durationByDay: { [key: string]: number } = {};
     
@@ -178,17 +199,19 @@ function App() {
     
     return durationByDay;
   };
-
+  
   const formatTime = (hours: number) => {
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
   };
-
+  
   return (
     <div className="container">
       <h1>Jubil-à-Temps !</h1>
-
+      <div className="user-info">
+        {user && <p>Connecté en tant que: {user.name}</p>}
+      </div>
       <div className="summary">
         <div className="summary-box">
           <h3>Total de la semaine</h3>
@@ -199,9 +222,7 @@ function App() {
           <p>{formatTime(monthlyTotal)}</p>
         </div>
       </div>
-
       <ActivityGraph data={groupShiftDurationByDay()} />
-
       <div className="main-content">
         <div className="add-shift">
           <h2>Ajouter créneau</h2>
@@ -247,7 +268,6 @@ function App() {
             </button>
           </form>
         </div>
-
         <div className="daily-shifts">
           <h2>Créneaux du {date}</h2>
           {dailyShifts.length > 0 ? (
@@ -266,7 +286,6 @@ function App() {
           )}
         </div>
       </div>
-
       <div className="history">
         <h2>Historique</h2>
         {shifts.length > 0 ? (
@@ -276,7 +295,6 @@ function App() {
               const end = new Date(`${shift.date}T${shift.endTime}`);
               const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
               const isEditing = editingId === shift.id;
-
               return (
                 <div key={shift.id} className="shift-card">
                   <div className="shift-card-header">
@@ -354,6 +372,20 @@ function App() {
         )}
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
