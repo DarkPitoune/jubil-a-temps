@@ -7,7 +7,11 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "node --env-file=.env  server.js"
+    "start": "node --env-file=.env dist/server.js",
+    "dev": "prisma generate && tsx watch --env-file=.env server.ts",
+    "build": "prisma generate && tsc",
+    "typecheck": "tsc --noEmit",
+    "generate": "prisma generate"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -19,7 +23,21 @@
     "node-cron": "^3.0.3",
     "path": "^0.12.7",
     "resend": "^4.1.2",
+    "shared": "workspace:*",
     "sqlite3": "^5.1.7"
   },
-  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
+  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4",
+  "devDependencies": {
+    "@prisma/client": "^6.5.0",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/body-parser": "^1.19.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.10",
+    "@types/node-cron": "^3.0.11",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
 }

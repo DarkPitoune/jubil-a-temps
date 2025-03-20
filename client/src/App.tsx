@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import {
   format,
@@ -12,19 +12,12 @@ import { ActivityGraph } from './components/ActivityGraph';
 import Auth from './components/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
-
-type Shift = {
-  id: number
-  date: string;
-  startTime: string;
-  endTime: string;
-  comment?: string;
-};
+import type { Shift } from 'shared';
 
 const API_URL = "https://jubilapi.pcdhebrail.ovh";
 
 function HomePage() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -58,16 +51,17 @@ function HomePage() {
       if (response.ok) {
         const data = await response.json();
         setShifts(data);
-      } else if (response.status === 401) {
-        // Handle unauthorized error
+      } else if (response.status === 401 || response.status === 403) {
+        // Handle unauthorized error or forbidden
         console.error("Authentication required");
+        window.location.href = '/auth';
       }
     } catch (error) {
       console.error("Error fetching shifts:", error);
     }
   };
   
-  const handleAddShift = async (e) => {
+  const handleAddShift = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!startTime || !endTime) {
       alert("Les horaires ne sont pas corrects");
@@ -97,6 +91,8 @@ function HomePage() {
         setEndTime("");
         setComment("");
         fetchShifts();
+      } else if (response.status === 401 || response.status === 403) {
+        window.location.href = '/auth';
       }
     } catch (error) {
       console.error("Error adding shift:", error);
@@ -123,6 +119,8 @@ function HomePage() {
         setEditingId(null);
         setEditingShift(null);
         fetchShifts();
+      } else if (response.status === 401 || response.status === 403) {
+        window.location.href = '/auth';
       }
     } catch (error) {
       console.error("Error updating shift:", error);
@@ -134,7 +132,7 @@ function HomePage() {
     setDailyShifts(filteredShifts);
   };
   
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
   };
@@ -150,6 +148,8 @@ function HomePage() {
 
       if (response.ok) {
         fetchShifts();
+      } else if (response.status === 401 || response.status === 403) {
+        window.location.href = '/auth';
       }
     }
   }
@@ -205,12 +205,23 @@ function HomePage() {
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
   };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, field: keyof Shift) => {
+    setEditingShift((prev: Shift | null) => prev ? { ...prev, [field]: e.target.value } : prev);
+  };
   
   return (
     <div className="container">
       <h1>Jubil-à-Temps !</h1>
       <div className="user-info">
-        {user && <p>Connecté en tant que: {user.name}</p>}
+        {user && (
+          <>
+            <p>Connecté en tant que: {user.name}</p>
+            <button onClick={logout} className="logout-btn">
+              Se déconnecter
+            </button>
+          </>
+        )}
       </div>
       <div className="summary">
         <div className="summary-box">
@@ -304,7 +315,7 @@ function HomePage() {
                           type="date"
                           defaultValue={shift.date}
                           onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, date: e.target.value })}
-                          onChange={(e) => setEditingShift(prev => prev ? {...prev, date: e.target.value} : prev)}
+                          onChange={(e) => handleInputChange(e, 'date')}
                         />
                       ) : (
                         format(new Date(shift.date), "dd MMM yyyy")
@@ -331,14 +342,14 @@ function HomePage() {
                             type="time"
                             defaultValue={shift.startTime}
                             onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, startTime: e.target.value })}
-                            onChange={(e) => setEditingShift(prev => prev ? {...prev, startTime: e.target.value} : prev)}
+                            onChange={(e) => handleInputChange(e, 'startTime')}
                           />
                           <span className="separator">→</span>
                           <input
                             type="time"
                             defaultValue={shift.endTime}
                             onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, endTime: e.target.value })}
-                            onChange={(e) => setEditingShift(prev => prev ? {...prev, endTime: e.target.value} : prev)}
+                            onChange={(e) => handleInputChange(e, 'endTime')}
                           />
                         </>
                       ) : (
@@ -355,7 +366,7 @@ function HomePage() {
                         type="text"
                         defaultValue={shift.comment || ''}
                         onBlur={(e) => editingShift && handleEdit(shift.id, { ...editingShift, comment: e.target.value })}
-                        onChange={(e) => setEditingShift(prev => prev ? {...prev, comment: e.target.value} : prev)}
+                        onChange={(e) => handleInputChange(e, 'comment')}
                         className="shift-comment-input"
                         placeholder="Commentaire"
                       />
