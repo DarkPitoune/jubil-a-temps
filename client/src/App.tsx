@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import {
   format,
   startOfWeek,
@@ -17,6 +17,7 @@ import type { Shift } from 'shared';
 const API_URL = "https://jubilapi.pcdhebrail.ovh";
 
 function HomePage() {
+  const navigate = useNavigate();
   const { user, token, logout } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [startTime, setStartTime] = useState("");
@@ -52,9 +53,9 @@ function HomePage() {
         const data = await response.json();
         setShifts(data);
       } else if (response.status === 401 || response.status === 403) {
-        // Handle unauthorized error or forbidden
-        console.error("Authentication required");
-        window.location.href = '/auth';
+        // Handle unauthorized error by logging out and redirecting
+        logout();
+        navigate('/auth');
       }
     } catch (error) {
       console.error("Error fetching shifts:", error);
@@ -92,7 +93,8 @@ function HomePage() {
         setComment("");
         fetchShifts();
       } else if (response.status === 401 || response.status === 403) {
-        window.location.href = '/auth';
+        logout();
+        navigate('/auth');
       }
     } catch (error) {
       console.error("Error adding shift:", error);
@@ -120,7 +122,8 @@ function HomePage() {
         setEditingShift(null);
         fetchShifts();
       } else if (response.status === 401 || response.status === 403) {
-        window.location.href = '/auth';
+        logout();
+        navigate('/auth');
       }
     } catch (error) {
       console.error("Error updating shift:", error);
@@ -149,7 +152,8 @@ function HomePage() {
       if (response.ok) {
         fetchShifts();
       } else if (response.status === 401 || response.status === 403) {
-        window.location.href = '/auth';
+        logout();
+        navigate('/auth');
       }
     }
   }
