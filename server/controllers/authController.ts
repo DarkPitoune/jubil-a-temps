@@ -36,7 +36,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET || 'defaultsecret',
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     res.status(201).json({ token });
@@ -74,7 +74,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '7d' }
     );
 
-    res.json({ token });
+    res.json({ token, user });
   } catch (error) {
     res.status(500).json({ message: error instanceof Error ? error.message : 'Server error' });
   }

@@ -33,7 +33,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const storedToken = localStorage.getItem('token');
 
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      if (!parsedUser || !parsedUser.id) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        setLoading(false);
+        return;
+      }
+      setUser(parsedUser);
       setToken(storedToken);
       setIsAuthenticated(true);
     }
