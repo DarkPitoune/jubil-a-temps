@@ -33,8 +33,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const storedToken = localStorage.getItem('token');
 
     if (storedUser && storedToken) {
-      const parsedUser = JSON.parse(storedUser);
-      if (!parsedUser || !parsedUser.id) {
+      let parsedUser: User;
+      try {
+        parsedUser = JSON.parse(storedUser);
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setLoading(false);
