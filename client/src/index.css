@@ -24,6 +24,7 @@ a:hover {
 
 input {
   background-color: transparent;
+  color: inherit;
 }
 
 body {
