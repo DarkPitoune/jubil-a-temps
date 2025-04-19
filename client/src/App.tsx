@@ -255,7 +255,7 @@ function HomePage() {
             </p>
           )}
           {differenceToFullWeek < 0 && (
-            <p style={{ color: "red" }}>
+            <p style={{ color: "green" }}>
               Dépassé de {formatTime(-differenceToFullWeek)}
             </p>
           )}
