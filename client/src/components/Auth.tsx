@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Login from './Login';
-import Register from './Register';
-import './Auth.css';
+import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Login from "./Login";
+import Register from "./Register";
+import "./Auth.css";
 
 const Auth: React.FC = () => {
   const [showLogin, setShowLogin] = useState(true);

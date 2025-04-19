@@ -1,13 +1,13 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 interface ProtectedRouteProps {
   redirectPath?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  redirectPath = '/auth' 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  redirectPath = "/auth",
 }) => {
   const { isAuthenticated, loading } = useAuth();
 
