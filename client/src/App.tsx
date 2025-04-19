@@ -213,6 +213,8 @@ function HomePage() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, field: keyof Shift) => {
     setEditingShift((prev: Shift | null) => prev ? { ...prev, [field]: e.target.value } : prev);
   };
+
+  const differenceToFullWeek = 39 - weeklyTotal;
   
   return (
     <div className="container">
@@ -235,6 +237,9 @@ function HomePage() {
         <div className="summary-box">
           <h3>Total du mois</h3>
           <p>{formatTime(monthlyTotal)}</p>
+          {differenceToFullWeek <= 0 ?
+            <p style={{color: 'green'}}>{differenceToFullWeek} excédentaires</p> :
+            <p style={{color: 'red'}}>{differenceToFullWeek} restants</p>}
         </div>
       </div>
       <ActivityGraph data={groupShiftDurationByDay()} />
